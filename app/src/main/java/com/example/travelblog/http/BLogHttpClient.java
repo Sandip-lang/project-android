@@ -1,0 +1,56 @@
+package com.example.travelblog.http;
+
+import android.util.Log;
+
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+
+public final class BLogHttpClient {
+
+    public static final BLogHttpClient INSTANCE = new BLogHttpClient();
+
+    public static final String BASE_URL = "https://bitbucket.org/dmytrodanylyk/travel-blog-resources";
+    public static final String PATH = "/raw/3eede691af3e8ff795bf6d31effb873d484877be";
+    private static final String BLOG_ARTICLES_URL = BASE_URL + PATH + "/blog_articles.json";
+
+    private OkHttpClient client;
+    private Gson gson;
+
+    private BLogHttpClient() {
+        client = new OkHttpClient();
+        gson = new Gson();
+    }
+
+    public List<Blog> loadBlogArticles(){
+        Request request = new Request.Builder()
+                .get()
+                .url(BLOG_ARTICLES_URL)
+                .build();
+
+            try {
+                Response response = client.newCall(request).execute();
+                ResponseBody responseBody = response.body();
+                if (responseBody!=null){
+                    String json =responseBody.string();
+                    BLogData blogData = gson.fromJson(json,BLogData.class);
+                    if (blogData != null){
+                        return blogData.getData();
+                    }
+                }
+            }catch (IOException e){
+                Log.e("BlogHttpClient","Error loading BLog articles",e);
+            }
+            return null;
+    }
+}
+
+
